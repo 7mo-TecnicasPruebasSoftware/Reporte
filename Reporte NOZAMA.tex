@@ -12,7 +12,7 @@
 
 \title{Sistema Nozama - Casos de Uso y Requisitos}
 \author{Bryan Miguel Amador Castillo \\ Edson Joel Carrera Avila \\ Saul Lopez Mendoza}
-\date{10/04/2025}
+\date{\today}
 
 \begin{document}
 \maketitle
@@ -201,7 +201,7 @@ Los actores que interactúan con el sistema Nozama se describen a continuación:
     \item Las promociones deben tener fecha de inicio y fin claramente definidas.
     \item Se aplican promociones vigentes y beneficios VIP automáticamente.
     \item Una promoción activa de categoría tiene prioridad sobre el precio estándar del producto, pero no se acumula con el descuento VIP.
-    \item[RN26b:] Si un producto tiene simultáneamente una promoción de producto y una promoción de categoría activas, se aplica únicamente el descuento de mayor porcentaje; no se acumulan entre sí ni con el descuento VIP.
+    \item Si un producto tiene simultáneamente una promoción de producto y una promoción de categoría activas, se aplica únicamente el descuento de mayor porcentaje; no se acumulan entre sí ni con el descuento VIP.
     \item Solo administradores pueden gestionar productos, categorías, usuarios y promociones.
     \item Todas las rutas administrativas deben validarse mediante middleware de autorización.
     \item Seguridad avanzada: contraseñas cifradas con algoritmos seguros (bcrypt/Argon2), limitación de intentos de login, validación y sanitización de entradas contra inyecciones.
@@ -1127,15 +1127,16 @@ Permitir al administrador dar de alta, modificar, desactivar o reactivar promoci
     CU03: Ver catálogo                       & OE2                     & RF03a                    & RN9, RN13               & RNF03, RNF08            \\ \hline
     CU04: Buscar productos                   & OE2                     & RF03b                    & RN9, RN13               & RNF03, RNF08            \\ \hline
     CU05: Filtrar por categoría              & OE2                     & RF03c                    & RN10--RN13              & RNF03, RNF08            \\ \hline
-    CU06: Ver detalle de producto            & OE2                     & RF03a, RF03b             & RN14--RN17, RN24--RN26b & RNF03, RNF08            \\ \hline
+    CU06: Ver detalle de producto            & OE2                     & RF03a, RF03b             & RN14--RN17, RN24--RN27  & RNF03, RNF08            \\ \hline
     CU07: Agregar producto al carrito        & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07                   \\ \hline
     CU08: Gestionar carrito                  & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07, RNF08            \\ \hline
-    CU09: Realizar pago y confirmar orden    & OE4                     & RF05, RF06               & RN21--RN23, RN24--RN26b & RNF01, RNF07            \\ \hline
+    CU09: Realizar pago y confirmar orden    & OE4                     & RF05, RF06               & RN21--RN23, RN24--RN27  & RNF01, RNF07            \\ \hline
     CU10: Consultar historial de órdenes     & OE4                     & RF07                     & RN7, RN8                & RNF07, RNF08            \\ \hline
-    CU11: Gestionar productos                & OE5                     & RF08, RF12               & RN14--RN17, RN27, RN28  & RNF02, RNF05            \\ \hline
-    CU12: Gestionar categorías               & OE5                     & RF08                     & RN10--RN13, RN27, RN28  & RNF02, RNF05            \\ \hline
-    CU13: Gestionar usuarios                 & OE1, OE5                & RF09                     & RN7, RN8, RN27, RN28    & RNF02, RNF05            \\ \hline
-    CU14: Gestionar promociones y descuentos & OE5                     & RF11                     & RN24--RN26b, RN27, RN28 & RNF02, RNF05            \\ \hline
+    CU11: Gestionar productos                & OE5                     & RF08, RF12               & RN14--RN17, RN28, RN29  & RNF02, RNF05            \\ \hline
+    CU12: Gestionar categorías               & OE5                     & RF08                     & RN10--RN13, RN28, RN29  & RNF02, RNF05            \\ \hline
+    CU13: Gestionar usuarios                 & OE1, OE5                & RF09, RF10        & RN1, RN3, RN7, RN8, RN28, RN29 & RNF02, RNF05 
+\\ \hline
+    CU14: Gestionar promociones y descuentos & OE5                     & RF11                     & RN24--RN27, RN28, RN29  & RNF02, RNF05            \\ \hline
 \end{tabularx}
 
 \clearpage % fuerza salto de página si la imagen es muy grande
