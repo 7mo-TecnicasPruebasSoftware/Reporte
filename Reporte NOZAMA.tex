@@ -1,0 +1,1165 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\geometry{margin=2.5cm}
+
+\title{Sistema Nozama - Casos de Uso y Requisitos}
+\author{Bryan Miguel Amador Castillo \\ Edson Joel Carrera Avila \\ Saul Lopez Mendoza}
+\date{10/04/2025}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================
+% PLANTEAMIENTO DEL PROYECTO
+% ============================
+
+\section{Planteamiento}
+Actualmente, muchos pequeños y medianos negocios comerciales no cuentan con
+una plataforma digital que les permita ofrecer sus productos en línea de forma
+organizada y eficiente. Los clientes se ven obligados a realizar compras
+presenciales o mediante canales informales (WhatsApp, redes sociales) que no
+garantizan la disponibilidad real del producto, lo que genera desconfianza, pedidos
+duplicados y pérdida de ventas por falta de control de inventario.
+
+Se requiere un sistema web que permita a los clientes explorar un catálogo de
+productos organizados por categorías, y a los clientes registrados gestionar un
+carrito de compras, realizar pagos y, de forma automática, actualizar el stock
+disponible tras cada transacción. De igual manera, el negocio necesita un panel de
+administración para gestionar productos (con captura por código UPC), categorías,
+usuarios y órdenes de compra.
+
+El sistema Nozama busca resolver la falta de plataformas confiables para pequeños
+negocios mediante un e-commerce con gestión de inventario y administración centralizada.
+
+% ============================
+% ALCANCE DEL PROYECTO
+% ============================
+
+\section{Alcance del proyecto}
+\subsection{Funcionalidades}
+\begin{itemize}[label=--]
+    \item Navegación pública del catálogo para usuarios no registrados (Invitados).
+    \item Registro e inicio de sesión de clientes y administradores.
+    \item Visualización del catálogo de productos por categorías.
+    \item Búsqueda y filtrado de productos.
+    \item Administración del carrito de compras (agregar, eliminar, modificar cantidad).
+    \item Proceso de pago con resumen de orden.
+    \item Actualización automática del stock tras cada compra confirmada.
+    \item Panel de administración: gestión de productos con captura en formato UPC, categorías (CRUD) y usuarios.
+    \item Historial de órdenes de compra por cliente.
+    \item Control de diferentes tipos de clientes (estándar / VIP con descuentos).
+    \item Manejo de promociones y descuentos por categoría o producto.
+\end{itemize}
+
+\subsection{Funcionalidades excluidas}
+\begin{itemize}[label=--]
+    \item Integración con pasarelas de pago reales (Stripe, PayPal, MercadoPago).
+    \item Uso de la dirección del cliente.
+    \item Aplicación móvil nativa.
+    \item Envíos y logística (seguimiento de paquetes).
+    \item Sistema de reseñas y calificaciones de productos.
+    \item Chat en vivo con soporte.
+\end{itemize}
+
+\subsection{Límites técnicos}
+\begin{itemize}[label=--]
+    \item Backend: Python 3.x con Flask.
+    \item Frontend: HTML5, CSS3, Bootstrap 5, Jinja2 Templates.
+    \item Base de datos: MySQL con SQLAlchemy ORM.
+    \item Autenticación: Flask-Login con sesiones.
+    \item Sistema operativo de desarrollo: Ubuntu/Linux.
+    \item Control de versiones: Git / GitHub.
+\end{itemize}
+
+\subsection{Límites de tiempo}
+\begin{itemize}[label=--]
+    \item Avance 1 (10/04/2026): Planteamiento, análisis de requisitos, casos de uso y mockups.
+    \item Avance 2 (fecha por definir): Módulo de autenticación, catálogo y carrito implementados.
+    \item Entrega final: Sistema completo con pruebas aplicadas (partición de equivalencia, valores límite, pruebas funcionales).
+\end{itemize}
+
+% ============================
+% OBJETIVOS DEL PROYECTO
+% ============================
+
+\section{Objetivos}
+
+\subsection{Objetivo General}
+Desarrollar un sistema web de comercio electrónico con Python y Flask que permita
+a los clientes explorar un catálogo de productos, gestionar un carrito de compras y
+completar el proceso de pago, con actualización automática del inventario y un
+panel de administración para la gestión del negocio.
+
+\subsection{Objetivos específicos}
+\begin{enumerate}[label=OE\arabic*:]
+    \item Implementar un módulo de administración de usuarios con roles diferenciados (invitado, cliente estándar, cliente VIP, administrador).
+    \item Desarrollar el catálogo de productos con organización por categorías y funcionalidad de búsqueda/filtrado accesible para usuarios no registrados.
+    \item Implementar el carrito de compras con persistencia de sesión y cálculo automático de totales y descuentos.
+    \item Desarrollar el flujo de pago que registre la orden y actualice el stock de cada producto vendido.
+    \item Construir el panel de administración para la gestión de productos con captura en formato UPC, categorías y órdenes (altas, bajas, cambios).
+    \item Aplicar técnicas de pruebas de software (partición equivalente, análisis de valores límite) sobre los módulos críticos del sistema.
+\end{itemize}
+
+\section{Análisis de requisitos}
+
+% ============================
+% ACTORES DEL SISTEMA
+% ============================
+
+\subsection{Actores del sistema}
+Los actores que interactúan con el sistema Nozama se describen a continuación:
+
+\begin{longtable}{|l|p{7.5cm}|p{5.5cm}|}
+    \hline
+    \textbf{Actor}                                                                          & \textbf{Descripción} & \textbf{Permisos principales} \\ \hline
+    \endfirsthead
+    \hline
+    \textbf{Actor}                                                                          & \textbf{Descripción} & \textbf{Permisos principales} \\ \hline
+    \endhead
+
+    Invitado                                                                                &
+    Usuario sin cuenta que puede navegar el catálogo, registrarse e iniciar sesión.         &
+    \begin{itemize}[leftmargin=*, nosep]
+        \item Navegar catálogo público.
+        \item Buscar y filtrar productos.
+        \item Registrarse para crear cuenta.
+    \end{itemize}                                                                                                        \\ \hline
+
+    Cliente                                                                                 &
+    Usuario registrado que hereda las funciones del invitado y posee persistencia de datos. &
+    \begin{itemize}[leftmargin=*, nosep]
+        \item Gestionar carrito de compras.
+        \item Realizar pagos y confirmar órdenes.
+        \item Consultar historial de órdenes.
+    \end{itemize}                                                                                                   \\ \hline
+
+    Cliente VIP                                                                             &
+    Usuario registrado con beneficios adicionales detectados por el sistema.                &
+    \begin{itemize}[leftmargin=*, nosep]
+        \item Todas las funciones del cliente.
+        \item Descuento automático del 10\%.
+    \end{itemize}                                                                                                      \\ \hline
+
+    Administrador                                                                           &
+    Actor con acceso exclusivo al panel de gestión y control de inventario.                 &
+    \begin{itemize}[leftmargin=*, nosep]
+        \item Gestión de productos y categorías.
+        \item Administración de usuarios.
+        \item Gestión de promociones.
+    \end{itemize}                                                                                                    \\ \hline
+
+    Sistema                                                                                 &
+    Componente interno que ejecuta lógica, validaciones y persiste datos.                   &
+    \begin{itemize}[leftmargin=*, nosep]
+        \item Actualización de stock y cálculos.
+        \item Validación de reglas de negocio.
+        \item Cifrado y seguridad de datos.
+    \end{itemize}
+    \\ \hline
+\end{longtable}
+
+% ============================
+% REGLAS DE NEGOCIO
+% ============================
+
+\subsection{Reglas de negocio}
+
+\begin{enumerate}[label=RN\arabic*:]
+    \item El correo electrónico de cada usuario debe ser único en la base de datos.
+    \item Las contraseñas deben cifrarse antes de persistirse en la base de datos.
+    \item Solo usuarios activos pueden iniciar sesión en el sistema.
+    \item La sesión expira tras 30 minutos de inactividad.
+    \item Si un usuario inicia sesión en otro dispositivo, la sesión anterior se invalida automáticamente.
+    \item Si un usuario inicia sesión desde un dispositivo mientras tiene otra sesión activa, la sesión anterior se invalida automáticamente sin notificación al usuario previo.
+    \item La desactivación de un usuario no elimina ni altera sus registros financieros u órdenes previas.
+    \item Usuarios desactivados no pueden iniciar sesión ni realizar nuevas transacciones.
+    \item La búsqueda de productos se realiza únicamente sobre productos activos.
+    \item Cada categoría debe tener un nombre único.
+    \item La baja de categorías es lógica (estado inactivo), no física.
+    \item Categorías dadas de baja pueden ser reactivadas.
+    \item La baja lógica de categorías no elimina ni altera referencias históricas de productos asociados.
+    \item Cada producto debe tener un código UPC único.
+    \item La baja de productos es lógica (estado inactivo), no física.
+    \item Productos dados de baja pueden ser reactivados.
+    \item La baja lógica de productos no elimina ni altera órdenes históricas.
+    \item Un cliente no puede agregar más unidades al carrito que las disponibles en stock.
+    \item El límite máximo de unidades por producto en el carrito es el menor valor entre el stock disponible y 10 unidades.
+    \item El carrito debe pertenecer al cliente autenticado.
+    \item No se pueden confirmar órdenes con carrito vacío.
+    \item El stock debe validarse nuevamente al momento de confirmar una orden.
+    \item El stock se reserva y descuenta únicamente al confirmar la orden.
+    \item Las promociones deben tener fecha de inicio y fin claramente definidas.
+    \item Se aplican promociones vigentes y beneficios VIP automáticamente.
+    \item Una promoción activa de categoría tiene prioridad sobre el precio estándar del producto, pero no se acumula con el descuento VIP.
+    \item[RN26b:] Si un producto tiene simultáneamente una promoción de producto y una promoción de categoría activas, se aplica únicamente el descuento de mayor porcentaje; no se acumulan entre sí ni con el descuento VIP.
+    \item Solo administradores pueden gestionar productos, categorías, usuarios y promociones.
+    \item Todas las rutas administrativas deben validarse mediante middleware de autorización.
+    \item Seguridad avanzada: contraseñas cifradas con algoritmos seguros (bcrypt/Argon2), limitación de intentos de login, validación y sanitización de entradas contra inyecciones.
+\end{itemize}
+
+
+% ============================
+% REQUISITOS FUNCIONALES
+% ============================
+
+\subsection{Requisitos funcionales}
+
+\begin{longtable}{|l|p{5.5cm}|p{3cm}|p{1.5cm}|p{4cm}|}
+    \hline
+    \textbf{ID} & \textbf{Descripción}                                                                       & \textbf{Actor principal} & \textbf{Prior.} & \textbf{Criterio de aceptación} \\ \hline
+    \endfirsthead
+    \hline
+    \textbf{ID} & \textbf{Descripción}                                                                       & \textbf{Actor principal} & \textbf{Prior.} & \textbf{Criterio de aceptación} \\ \hline
+    \endhead
+
+    RF01        & Registrar nuevos clientes con nombre, correo electrónico y contraseña.                     & Invitado                 & Alta            &
+    El sistema acepta correos con formato RFC 5322, rechaza duplicados con mensaje específico y exige contraseñas de mínimo 8 caracteres con al menos un número.                            \\ \hline
+
+    RF02        & Autenticar usuarios (clientes y administradores) mediante correo electrónico y contraseña. & Cliente / Administrador  & Alta            &
+    El sistema bloquea el acceso tras 5 intentos fallidos consecutivos; redirige según rol tras autenticación exitosa.                                                                      \\ \hline
+
+    RF02b       & Cerrar sesión de usuario autenticado.                                                      & Cliente / Administrador  & Alta            &
+    El sistema invalida la sesión en BD y redirige al inicio; el botón de retroceso no permite acceder a rutas protegidas.                                                                  \\ \hline
+
+    RF03a       & Mostrar catálogo de productos organizados por categorías a cualquier usuario.              & Invitado / Cliente       & Alta            &
+    Se muestran únicamente productos con \texttt{activo = True}; la paginación muestra máximo 20 productos por página.                                                                      \\ \hline
+
+    RF03b       & Permitir búsqueda de productos por término en nombre o descripción.                        & Invitado / Cliente       & Alta            &
+    La búsqueda es insensible a mayúsculas; retorna resultados en menos de 2 s; muestra mensaje si no hay coincidencias.                                                                    \\ \hline
+
+    RF03c       & Permitir filtrado de productos por categoría activa.                                       & Invitado / Cliente       & Alta            &
+    Solo se muestran categorías con \texttt{activo = True}; al seleccionar una categoría inexistente redirige al catálogo completo.                                                         \\ \hline
+
+    RF04        & Permitir al cliente gestionar el carrito de compras (agregar, actualizar, eliminar).       & Cliente                  & Alta            &
+    No se puede agregar más unidades que el stock disponible ni más de 10 por producto; el carrito persiste en sesión.                                                                      \\ \hline
+
+    RF05        & Calcular el total de la orden considerando precio unitario, cantidad y descuentos.         & Cliente / Sistema        & Alta            &
+    El total refleja promociones vigentes y descuento VIP (no acumulables); el desglose es visible antes de confirmar.                                                                      \\ \hline
+
+    RF06        & Registrar la orden y descontar stock al confirmar el pago.                                 & Cliente / Sistema        & Alta            &
+    El stock se descuenta atómicamente al confirmar; si falla la transacción, el stock no se modifica.                                                                                      \\ \hline
+
+    RF07        & Consultar historial de órdenes de compra anteriores.                                       & Cliente                  & Media           &
+    Solo se muestran órdenes del cliente autenticado; se puede filtrar por estado; el detalle incluye productos, cantidades y totales.                                                      \\ \hline
+
+    RF08        & Administrador gestiona productos y categorías (altas, bajas, modificaciones).              & Administrador            & Alta            &
+    La baja es lógica (no física); un producto dado de baja no aparece en catálogo ni en búsquedas; puede reactivarse.                                                                      \\ \hline
+
+    RF09        & Administrador gestiona cuentas de usuario (activar/desactivar, cambiar tipo de cliente).   & Administrador            & Alta            &
+    Un usuario desactivado no puede iniciar sesión; sus órdenes históricas no se alteran; el cambio de tipo actualiza descuentos en tiempo real.                                            \\ \hline
+
+    RF10        & Soportar clientes estándar y VIP con descuento automático del 10\%.                        & Sistema                  & Alta            &
+    El tipo VIP lo asigna manualmente el administrador (RF09); el descuento se aplica automáticamente en RF05 cuando el tipo es VIP.                                                        \\ \hline
+
+    RF11        & Crear promociones de descuento por producto o categoría con fechas de vigencia.            & Administrador            & Media           &
+    La fecha de inicio debe ser anterior a la de fin; una promoción fuera de vigencia no se aplica aunque esté activa; no se acumula con descuento VIP.                                     \\ \hline
+
+    RF12        & Captura de productos en formato UPC (código de barras, nombre, descripción, cantidad).     & Administrador            & Alta            &
+    El sistema rechaza UPCs duplicados con mensaje específico; el campo UPC acepta exactamente 12 dígitos numéricos.                                                                        \\ \hline
+\end{longtable}
+
+% ============================
+% REQUISITOS NO FUNCIONALES
+% ============================
+
+\subsection{Requisitos no funcionales}
+
+\begin{longtable}{|l|p{7cm}|p{3cm}|p{3.5cm}|}
+    \hline
+    \textbf{ID} & \textbf{Descripción}                                                                                                  & \textbf{Categoría}     & \textbf{Métrica / criterio} \\ \hline
+    \endfirsthead
+    \hline
+    \textbf{ID} & \textbf{Descripción}                                                                                                  & \textbf{Categoría}     & \textbf{Métrica / criterio} \\ \hline
+    \endhead
+
+    RNF01       & Tiempo de respuesta menor a 2 segundos con hasta 100 usuarios concurrentes.                                           & Rendimiento            &
+    Medido con herramienta de carga (e.g., Locust) sobre rutas críticas: catálogo, carrito y checkout.                                                                                         \\ \hline
+
+    RNF02       & Contraseñas cifradas con hash seguro (bcrypt o Argon2). Rutas de administración protegidas por autenticación y roles. & Seguridad              &
+    Acceso a rutas \texttt{/admin/*} sin sesión retorna HTTP 403; ninguna contraseña se almacena en texto plano.                                                                               \\ \hline
+
+    RNF03       & Interfaz responsiva mediante Bootstrap 5, funcional en dispositivos móviles y escritorio.                             & Usabilidad             &
+    Compatible con Chrome 120+, Firefox 120+ y Safari 17+; resoluciones mínimas: 375px (móvil) y 1280px (escritorio).                                                                          \\ \hline
+
+    RNF04       & Disponibilidad mínima del 95\% durante el período de evaluación operativa.                                            & Disponibilidad         &
+    Calculado como: (tiempo total $-$ tiempo de caída) / tiempo total $\geq$ 0.95 en el período de evaluación.                                                                                 \\ \hline
+
+    RNF05       & Código estructurado bajo patrón MVC (Blueprints, SQLAlchemy, Jinja2) para facilitar mantenibilidad.                   & Mantenibilidad         &
+    Cada módulo funcional en un Blueprint independiente; sin lógica de negocio en las plantillas Jinja2.                                                                                       \\ \hline
+
+    RNF06       & Compatible con entornos que dispongan de Python 3.x, Flask y MySQL.                                                   & Portabilidad           &
+    El proyecto incluye \texttt{requirements.txt} y script de inicialización de BD; ejecutable en Ubuntu 22.04+.                                                                               \\ \hline
+
+    RNF07       & Registro de errores en logs con timestamp y despliegue de mensajes genéricos al usuario.                              & Confiabilidad          &
+    Formato de log: \texttt{[YYYY-MM-DD HH:MM:SS] [LEVEL] mensaje}; niveles mínimos registrados: WARNING y ERROR.                                                                              \\ \hline
+
+    RNF08       & Comunicación visual consistente: notificaciones uniformes para confirmar acciones del usuario.                        & Experiencia de usuario &
+    Todas las acciones CRUD muestran mensaje flash de confirmación o error; el tiempo de visualización es de al menos 3 segundos.                                                              \\ \hline
+
+    RNF09       & El sistema opera en idioma español (es-MX) como único idioma soportado.                                               & Localización           &
+    Todos los mensajes de interfaz, errores y notificaciones están en español; no se requiere soporte multilingüe.                                                                             \\ \hline
+\end{longtable}
+
+\section{Casos de uso}
+
+% ============================
+% CU01
+% ============================
+
+\subsection{CU01: Registrar cuenta}
+\subsubsection*{Objetivo}
+Permitir a un invitado crear una cuenta en el sistema, validando datos y generando sesión automática.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Invitado & Proporciona datos personales para crear una cuenta.      \\ \hline
+    Sistema  & Valida datos, cifra contraseña y persiste usuario en BD. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El usuario no tiene cuenta registrada.
+    \item No hay sesión activa.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito             & Usuario creado, sesión iniciada, redirección al catálogo. \\ \hline
+    Correo duplicado  & Error en campo, sugerencia de iniciar sesión.             \\ \hline
+    Datos inválidos   & Errores específicos por campo.                            \\ \hline
+    Error del sistema & Mensaje genérico, registro en log.                        \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Invitado accede a \texttt{/register}.
+    \item Completa formulario con nombre, correo y contraseña.
+    \item Sistema valida campos.
+    \item Sistema verifica correo no duplicado.
+    \item Sistema cifra contraseña y guarda usuario.
+    \item Sistema inicia sesión y redirige a \texttt{/catalog}.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Correo ya registrado: sistema muestra error y sugiere iniciar sesión.
+    \item Datos inválidos: sistema muestra errores específicos y mantiene formulario visible.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico.
+    \item Timeout: invitado no recibe respuesta, sistema evita duplicados.
+\end{enumerate}
+
+% ============================
+% CU02
+% ============================
+
+\subsection{CU02: Iniciar sesión}
+\subsubsection*{Objetivo}
+Permitir a clientes y administradores autenticarse en el sistema.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente registrado & Ingresa credenciales para acceder a su cuenta.    \\ \hline
+    Administrador      & Se autentica y accede al panel de administración. \\ \hline
+    Sistema            & Verifica credenciales y activa sesión según rol.  \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item Usuario sin sesión activa.
+    \item Cuenta registrada en el sistema.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito (cliente)          & Sesión iniciada, redirección al catálogo.                \\ \hline
+    Éxito (administrador)    & Sesión iniciada, redirección al panel de administración. \\ \hline
+    Credenciales incorrectas & Error genérico sin revelar campo fallido.                \\ \hline
+    Cuenta desactivada       & Mensaje informativo y sugerencia de soporte.             \\ \hline
+    Error del sistema        & Mensaje genérico y registro en log.                      \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Usuario accede a \texttt{/login}.
+    \item Ingresa correo y contraseña.
+    \item Sistema busca usuario en BD.
+    \item Sistema verifica contraseña.
+    \item Sistema comprueba estado activo.
+    \item Sistema inicia sesión y redirige según rol.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Credenciales incorrectas: sistema muestra error genérico.
+    \item Cuenta desactivada: sistema informa y sugiere soporte.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción y muestra mensaje genérico.
+    \item Sesión activa: sistema detecta sesión y redirige sin mostrar formulario.
+\end{enumerate}
+
+% ============================
+% CU02b
+% ============================
+
+\subsection{CU02b: Cerrar sesión}
+\subsubsection*{Objetivo}
+Permitir a clientes y administradores cerrar su sesión activa de forma segura.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente / Administrador & Solicita cerrar su sesión activa.              \\ \hline
+    Sistema                 & Invalida la sesión en BD y redirige al inicio. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El usuario tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito             & Sesión invalidada; redirección a \texttt{/login}.                         \\ \hline
+    Error del sistema & Sesión no invalidada; mensaje genérico y registro en log.                 \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Usuario hace clic en "Cerrar sesión".
+    \item Sistema invalida el token/sesión en la BD.
+    \item Sistema redirige a \texttt{/login}.
+    \item Intentar navegar hacia atrás retorna HTTP 403 o redirige a \texttt{/login}.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log; la sesión se invalida localmente de todos modos.
+\end{enumerate}
+
+% ============================
+% CU03
+% ============================
+
+\subsection{CU03: Ver catálogo}
+\subsubsection*{Objetivo}
+Permitir al cliente navegar el catálogo de productos activos, aplicar filtros por categoría y consultar el detalle de productos.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Navega el catálogo, filtra por categoría y consulta detalle de productos.                \\ \hline
+    Sistema & Recupera y muestra los productos activos desde la base de datos según filtros aplicados. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente puede estar autenticado o no (el catálogo es público).
+    \item Existen productos registrados y marcados como activos en la base de datos.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito             & Se muestran productos activos con imagen, nombre, precio y stock.             \\ \hline
+    Sin resultados    & No hay productos que coincidan con el filtro; se muestra mensaje informativo. \\ \hline
+    Catálogo vacío    & No existen productos activos en la BD; se muestra estado vacío con mensaje.   \\ \hline
+    Error del sistema & Mensaje genérico y registro en log.                                           \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente accede a \texttt{/catalog}.
+    \item Sistema consulta todos los productos con \texttt{activo = True} y los devuelve paginados.
+    \item Sistema renderiza tarjetas de producto con imagen, nombre, precio, categoría y botón “Agregar al carrito”.
+    \item Cliente selecciona una categoría del menú de filtros.
+    \item Sistema filtra productos por categoría y actualiza la vista.
+    \item Cliente hace clic en un producto para ver su detalle.
+    \item Sistema renderiza la página de detalle en \texttt{/product/<id>}.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Búsqueda sin resultados: sistema muestra mensaje “No se encontraron productos en esta categoría” con opción de limpiar filtros.
+    \item Producto sin stock: sistema muestra etiqueta “Agotado” y deshabilita botón “Agregar al carrito”.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico.
+    \item Producto inexistente o inactivo: sistema retorna error 404 con mensaje “Este producto no está disponible” y enlace de regreso al catálogo.
+\end{enumerate}
+
+% ============================
+% CU04
+% ============================
+
+\subsection{CU04: Buscar productos}
+\subsection*{Objetivo}
+Permitir al usuario localizar productos específicos mediante búsqueda por término dentro del catálogo.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Invitado/Cliente & Ingresa un término de búsqueda para localizar productos específicos.                       \\ \hline
+    Sistema          & Ejecuta la consulta sobre la base de datos y devuelve los productos activos que coincidan. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El usuario (invitado o cliente) se encuentra en el catálogo (\texttt{/catalog}).
+    \item BD y servicio web disponibles.
+    \item El producto buscado debe estar marcado como activo en el sistema.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Con resultados    & Se muestran productos activos cuyo nombre o descripción coincidan con el término.    \\ \hline
+    Sin resultados    & No hay coincidencias; se muestra mensaje informativo con opción de limpiar búsqueda. \\ \hline
+    Error del sistema & No se ejecuta la búsqueda; mensaje genérico y registro en log.                       \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Usuario escribe un término en la barra de búsqueda y presiona Enter o clic en el icono de buscar.
+    \item Sistema recibe el parámetro \texttt{q} vía GET en \texttt{/catalog?q=termino}.
+    \item Sistema consulta productos activos cuyo nombre o descripción contengan el término (búsqueda insensible a mayúsculas).
+    \item Sistema renderiza resultados paginados con el término resaltado en los títulos.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Sin resultados: la consulta retorna lista vacía; sistema muestra mensaje “No se encontraron productos para \{término\}” con botón “Ver todo el catálogo”.
+    \item Búsqueda vacía: sistema detecta que el parámetro \texttt{q} está vacío o contiene solo espacios; redirige al catálogo completo sin aplicar filtro.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU05
+% ============================
+
+\subsection{CU05: Filtrar por categoría}
+\subsection*{Objetivo}
+Permitir al usuario filtrar productos activos por una categoría seleccionada dentro del catálogo.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Invitado/Cliente & Selecciona una categoría para acotar los productos mostrados en el catálogo.     \\ \hline
+    Sistema          & Filtra los productos activos por la categoría seleccionada y actualiza la vista. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El usuario (invitado o cliente) se encuentra en el catálogo (\texttt{/catalog}).
+    \item Existen categorías activas con al menos un producto activo asociado.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Con resultados        & Se muestran únicamente los productos que pertenecen a la categoría seleccionada. \\ \hline
+    Sin resultados        & La categoría no tiene productos activos; se muestra mensaje informativo.         \\ \hline
+    Categoría inexistente & El ID de categoría en la URL no existe; se redirige al catálogo completo.        \\ \hline
+    Error del sistema     & No se aplica el filtro; mensaje genérico y registro en log.                      \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Usuario hace clic en una categoría del menú de navegación o filtros laterales.
+    \item Sistema recibe el parámetro \texttt{categoria\_id} vía GET en \texttt{/catalog?categoria=id}.
+    \item Sistema verifica que la categoría exista y esté activa en la BD.
+    \item Sistema consulta todos los productos activos con \texttt{categoria\_id} igual al seleccionado.
+    \item Sistema renderiza resultados paginados con la categoría activa resaltada en el menú.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Categoría sin productos activos: la consulta retorna lista vacía; sistema muestra mensaje “Esta categoría no tiene productos disponibles por el momento” con enlace al catálogo completo.
+    \item Categoría inexistente en la URL: sistema no encuentra la categoría en la BD; redirige al catálogo completo sin filtro aplicado.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU06
+% ============================
+
+\subsection{CU06: Ver detalle de producto}
+\subsubsection*{Objetivo}
+Mostrar información detallada de un producto seleccionado, incluyendo descripción, precio, stock y promociones vigentes.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Selecciona un producto para consultar su detalle.                                             \\ \hline
+    Sistema & Recupera la información completa del producto desde la base de datos y la muestra al cliente. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente se encuentra en el catálogo (\texttt{/catalog}).
+    \item El producto seleccionado está registrado y marcado como activo en la BD.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                         & Se muestra la información completa del producto (nombre, descripción, precio, stock, categoría, promociones). \\ \hline
+    Producto agotado              & Se muestra detalle con etiqueta “Agotado” y botón de compra deshabilitado.                                    \\ \hline
+    Producto inexistente/inactivo & Se retorna error 404 con mensaje informativo.                                                                 \\ \hline
+    Error del sistema             & Mensaje genérico y registro en log.                                                                           \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente hace clic en un producto desde el catálogo.
+    \item Sistema recibe el \texttt{product\_id} vía GET en \texttt{/product/<id>}.
+    \item Sistema consulta la BD y obtiene información completa del producto.
+    \item Sistema renderiza la página de detalle con nombre, descripción, precio, stock, categoría y promociones vigentes.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Producto agotado: sistema detecta stock = 0; muestra etiqueta “Agotado” y deshabilita botón “Agregar al carrito”.
+    \item Producto con promoción vigente: sistema detecta promoción activa; muestra precio original tachado y precio con descuento.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Producto inexistente o inactivo: sistema no encuentra el producto o \texttt{activo = False}; retorna error 404 con mensaje “Este producto no está disponible” y enlace de regreso al catálogo.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU07
+% ============================
+
+\subsection{CU07: Agregar producto al carrito}
+\subsubsection*{Objetivo}
+Permitir al cliente agregar productos al carrito de compras, validando stock y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Selecciona un producto y lo agrega al carrito.                         \\ \hline
+    Sistema & Valida stock, cantidad y sesión activa; actualiza el carrito en la BD. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente tiene sesión activa en el sistema.
+    \item El producto seleccionado está registrado, activo y con stock disponible.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                     & Producto agregado al carrito; se muestra confirmación.     \\ \hline
+    Producto ya en el carrito & Sistema incrementa cantidad o muestra mensaje informativo. \\ \hline
+    Cantidad máxima alcanzada & Sistema muestra error y no permite agregar más unidades.   \\ \hline
+    Producto agotado/inactivo & Sistema muestra mensaje de no disponibilidad.              \\ \hline
+    Error del sistema         & Mensaje genérico y registro en log.                        \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente hace clic en “Agregar al carrito” desde el catálogo o detalle de producto.
+    \item Sistema verifica que el cliente tenga sesión activa.
+    \item Sistema valida que el producto esté activo y con stock disponible.
+    \item Sistema agrega el producto al carrito en la BD con cantidad inicial = 1.
+    \item Sistema muestra confirmación y actualiza el ícono del carrito.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Producto ya en el carrito: sistema detecta existencia previa; incrementa cantidad o muestra mensaje “Este producto ya está en tu carrito”.
+    \item Cantidad máxima alcanzada: sistema detecta límite de unidades por producto; muestra error y no permite agregar más.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión activa: sistema detecta que el cliente no está autenticado; redirige a \texttt{/login}.
+    \item Producto agotado o inactivo: sistema detecta stock = 0 o \texttt{activo = False}; muestra mensaje de no disponibilidad.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU08
+% ============================
+
+\subsection{CU08: Gestionar carrito}
+\subsubsection*{Objetivo}
+Permitir al cliente modificar las cantidades de los productos en su carrito, eliminar ítems o vaciarlo por completo, validando stock y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Gestiona los productos de su carrito (actualizar cantidad, eliminar ítems, vaciar carrito). \\ \hline
+    Sistema & Valida stock, cantidades y sesión activa; actualiza el carrito en la BD.                    \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente tiene sesión activa en el sistema.
+    \item El carrito contiene al menos un producto.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito              & Carrito actualizado correctamente (cantidad modificada, ítem eliminado o carrito vaciado). \\ \hline
+    Cantidad inválida  & Sistema muestra error y no aplica cambios.                                                 \\ \hline
+    Stock insuficiente & Sistema muestra mensaje informativo y ajusta cantidad máxima posible.                      \\ \hline
+    Carrito vacío      & Tras eliminar todos los ítems, se muestra estado vacío.                                    \\ \hline
+    Error del sistema  & Mensaje genérico y registro en log.                                                        \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente accede a su carrito desde la barra de navegación.
+    \item Cliente selecciona acción: actualizar cantidad, eliminar ítem o vaciar carrito.
+    \item Sistema valida sesión activa y existencia de ítems en el carrito.
+    \item Sistema aplica la acción solicitada en la BD.
+    \item Sistema muestra confirmación y actualiza la vista del carrito.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Cantidad inválida: sistema detecta número negativo o no numérico; muestra error y mantiene cantidad anterior.
+    \item Stock insuficiente: sistema detecta que la cantidad solicitada excede stock disponible; ajusta cantidad máxima y muestra mensaje informativo.
+    \item Carrito vacío tras eliminar: sistema detecta que no quedan ítems; muestra estado vacío con mensaje “Tu carrito está vacío”.
+    \item Vaciar carrito completo: cliente selecciona opción “Vaciar carrito”; sistema elimina todos los ítems y muestra estado vacío.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión activa: sistema detecta cliente no autenticado; redirige a \texttt{/login}.
+    \item Ítem no pertenece al cliente: sistema detecta inconsistencia; muestra error y no aplica cambios.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU09
+% ============================
+
+\subsection{CU09: Realizar pago y confirmar orden}
+\subsubsection*{Objetivo}
+Permitir al cliente confirmar su orden y realizar el pago, validando stock, sesión activa y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Selecciona método de pago y confirma la orden.                            \\ \hline
+    Sistema & Valida stock, sesión activa y método de pago; registra la orden en la BD. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente tiene sesión activa en el sistema.
+    \item El carrito contiene al menos un producto con stock disponible.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                          & Orden confirmada y registrada; se muestra comprobante de pago. \\ \hline
+    Cliente VIP                    & Se aplican beneficios especiales (ej. descuentos adicionales). \\ \hline
+    Promoción vigente              & Se aplican descuentos sobre productos con promoción activa.    \\ \hline
+    Método de pago no seleccionado & Sistema muestra error y solicita elegir método de pago.        \\ \hline
+    Stock insuficiente             & Sistema muestra error y no confirma orden.                     \\ \hline
+    Carrito vacío                  & Sistema muestra mensaje informativo y no permite confirmar.    \\ \hline
+    Sin sesión activa              & Sistema redirige a \texttt{/login}.                            \\ \hline
+    Error del sistema              & Mensaje genérico y registro en log.                            \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente accede a su carrito y selecciona “Confirmar orden”.
+    \item Sistema valida sesión activa y existencia de productos en el carrito.
+    \item Cliente selecciona método de pago simulado (p.~ej., ``Pago en efectivo'' o ``Transferencia bancaria''); no se integran pasarelas de pago externas en esta versión.
+    \item Sistema valida stock de cada producto antes de confirmar.
+    \item Sistema aplica promociones vigentes y beneficios VIP si corresponden.
+    \item Sistema registra la orden en la BD y procesa el pago.
+    \item Sistema muestra comprobante de pago y redirige a página de confirmación.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Cliente VIP: sistema detecta atributo VIP y aplica beneficios adicionales.
+    \item Promoción vigente: sistema aplica descuentos sobre productos con promoción activa.
+    \item Método de pago no seleccionado: sistema muestra error y solicita elegir método antes de continuar.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Stock insuficiente: sistema detecta falta de stock al confirmar; muestra error y no registra orden.
+    \item Carrito vacío: sistema detecta que no hay productos; muestra mensaje informativo y no permite confirmar.
+    \item Sin sesión activa: sistema detecta cliente no autenticado; redirige a \texttt{/login}.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU10
+% ============================
+
+\subsection{CU10: Consultar historial de órdenes}
+\subsubsection*{Objetivo}
+Permitir al cliente consultar su historial de órdenes, ver detalles de cada una y aplicar filtros por estado.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente & Consulta el historial de órdenes y accede al detalle de cada una.   \\ \hline
+    Sistema & Recupera las órdenes registradas en la BD y las muestra al cliente. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El cliente tiene sesión activa en el sistema.
+    \item Existen órdenes registradas en la BD asociadas al cliente.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                         & Se muestra listado de órdenes con opción de ver detalle. \\ \hline
+    Sin órdenes registradas       & Sistema muestra mensaje informativo.                     \\ \hline
+    Filtro aplicado               & Sistema muestra órdenes según estado seleccionado.       \\ \hline
+    Orden no pertenece al cliente & Sistema muestra error y no permite acceso.               \\ \hline
+    Sin sesión activa             & Sistema redirige a \texttt{/login}.                      \\ \hline
+    Error del sistema             & Mensaje genérico y registro en log.                      \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Cliente accede a la sección “Historial de órdenes”.
+    \item Sistema valida sesión activa y consulta órdenes asociadas al cliente.
+    \item Sistema muestra listado de órdenes con fecha, estado y total.
+    \item Cliente selecciona una orden para ver detalle.
+    \item Sistema muestra detalle de la orden: productos, cantidades, precios y estado.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Sin órdenes registradas: sistema detecta lista vacía; muestra mensaje “No tienes órdenes registradas”.
+    \item Filtrar por estado: cliente selecciona estado (ej. pendiente, entregada); sistema muestra solo órdenes con ese estado.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Orden no pertenece al cliente: sistema detecta intento de acceso a orden ajena; muestra error y no permite visualizar detalle.
+    \item Sin sesión activa: sistema detecta cliente no autenticado; redirige a \texttt{/login}.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU11
+% ============================
+
+\subsection{CU11: Gestionar productos}
+\subsubsection*{Objetivo}
+Permitir al administrador dar de alta, modificar, dar de baja o reactivar productos en el sistema, validando datos y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Administrador & Gestiona los productos del catálogo (alta, modificación, baja lógica, reactivación). \\ \hline
+    Sistema       & Valida datos, persiste cambios en la BD y aplica reglas de negocio.                  \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El administrador tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                              & Producto creado, modificado, dado de baja o reactivado correctamente. \\ \hline
+    UPC duplicado                      & Sistema muestra error y no permite alta.                              \\ \hline
+    Datos inválidos                    & Sistema muestra errores específicos por campo.                        \\ \hline
+    Sin sesión o sin rol administrador & Sistema redirige a \texttt{/login} o muestra error de permisos.       \\ \hline
+    Error del sistema                  & Mensaje genérico y registro en log.                                   \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Administrador accede a la sección “Gestión de productos”.
+    \item Selecciona acción: alta, modificación, baja lógica o reactivación.
+    \item Sistema valida sesión activa y rol administrador.
+    \item Administrador ingresa o modifica datos del producto (nombre, descripción, precio, stock, categoría, UPC).
+    \item Sistema valida datos y persiste cambios en la BD.
+    \item Sistema muestra confirmación y actualiza el catálogo.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item UPC duplicado: sistema detecta código repetido; muestra error y no permite alta.
+    \item Datos inválidos: sistema detecta campos vacíos o incorrectos; muestra errores específicos y mantiene formulario visible.
+    \item Reactivar producto dado de baja: administrador selecciona producto inactivo; sistema cambia estado a activo y lo muestra en catálogo.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión o sin rol administrador: sistema detecta falta de permisos; redirige a \texttt{/login} o muestra error de autorización.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU12
+% ============================
+
+\subsection{CU12: Gestionar categorías}
+\subsubsection*{Objetivo}
+Permitir al administrador dar de alta, modificar, dar de baja o reactivar categorías en el sistema, validando datos y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Administrador & Gestiona las categorías del catálogo (alta, modificación, baja lógica, reactivación). \\ \hline
+    Sistema       & Valida datos, persiste cambios en la BD y aplica reglas de negocio.                   \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El administrador tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                              & Categoría creada, modificada, dada de baja o reactivada correctamente. \\ \hline
+    Nombre duplicado                   & Sistema muestra error y no permite alta.                               \\ \hline
+    Categoría con productos activos    & Sistema muestra error y no permite baja lógica.                        \\ \hline
+    Sin sesión o sin rol administrador & Sistema redirige a \texttt{/login} o muestra error de permisos.        \\ \hline
+    Error del sistema                  & Mensaje genérico y registro en log.                                    \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Administrador accede a la sección “Gestión de categorías”.
+    \item Selecciona acción: alta, modificación, baja lógica o reactivación.
+    \item Sistema valida sesión activa y rol administrador.
+    \item Administrador ingresa o modifica datos de la categoría (nombre, descripción).
+    \item Sistema valida datos y persiste cambios en la BD.
+    \item Sistema muestra confirmación y actualiza el catálogo.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Nombre duplicado: sistema detecta nombre repetido; muestra error y no permite alta.
+    \item Categoría con productos activos: sistema detecta que la categoría tiene productos activos; muestra error y no permite baja lógica.
+    \item Reactivar categoría: administrador selecciona categoría inactiva; sistema cambia estado a activo y la muestra en catálogo.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión o sin rol administrador: sistema detecta falta de permisos; redirige a \texttt{/login} o muestra error de autorización.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU13
+% ============================
+
+\subsection{CU13: Gestionar usuarios}
+\subsubsection*{Objetivo}
+Permitir al administrador consultar, modificar roles, desactivar o reactivar usuarios en el sistema, validando permisos y reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Administrador & Gestiona los usuarios del sistema (consulta, modificación de roles, desactivación, reactivación). \\ \hline
+    Sistema       & Valida datos, persiste cambios en la BD y aplica reglas de negocio.                               \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El administrador tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+    \item Existen usuarios registrados en la BD.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                              & Usuario consultado, rol modificado, desactivado o reactivado correctamente. \\ \hline
+    Usuario inexistente                & Sistema muestra error y no permite acción.                                  \\ \hline
+    Datos inválidos                    & Sistema muestra errores específicos por campo.                              \\ \hline
+    Sin sesión o sin rol administrador & Sistema redirige a \texttt{/login} o muestra error de permisos.             \\ \hline
+    Error del sistema                  & Mensaje genérico y registro en log.                                         \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Administrador accede a la sección “Gestión de usuarios”.
+    \item Selecciona acción: consultar, modificar rol, desactivar o reactivar usuario.
+    \item Sistema valida sesión activa y rol administrador.
+    \item Administrador ingresa o selecciona datos del usuario (correo, nombre, rol).
+    \item Sistema valida datos y persiste cambios en la BD.
+    \item Sistema muestra confirmación y actualiza la lista de usuarios.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Usuario inexistente: sistema no encuentra el usuario en la BD; muestra error y no permite acción.
+    \item Datos inválidos: sistema detecta campos vacíos o incorrectos; muestra errores específicos y mantiene formulario visible.
+    \item Reactivar usuario: administrador selecciona usuario inactivo; sistema cambia estado a activo y lo muestra en la lista.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión o sin rol administrador: sistema detecta falta de permisos; redirige a \texttt{/login} o muestra error de autorización.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% CU14
+% ============================
+
+\subsection{CU14: Gestionar promociones y descuentos}
+\subsubsection*{Objetivo}
+Permitir al administrador dar de alta, modificar, desactivar o reactivar promociones y descuentos en el sistema, aplicándolos a productos o categorías según reglas de negocio.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Administrador & Gestiona las promociones y descuentos (alta, modificación, baja lógica, reactivación). \\ \hline
+    Sistema       & Valida datos, persiste cambios en la BD y aplica reglas de negocio.                    \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El administrador tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+    \item Existen productos o categorías registradas en la BD.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito                              & Promoción creada, modificada, desactivada o reactivada correctamente. \\ \hline
+    Nombre duplicado                   & Sistema muestra error y no permite alta.                              \\ \hline
+    Fechas inválidas                   & Sistema muestra error si la fecha de inicio es posterior a la de fin. \\ \hline
+    Sin sesión o sin rol administrador & Sistema redirige a \texttt{/login} o muestra error de permisos.       \\ \hline
+    Error del sistema                  & Mensaje genérico y registro en log.                                   \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Administrador accede a la sección “Gestión de promociones”.
+    \item Selecciona acción: alta, modificación, desactivación o reactivación.
+    \item Sistema valida sesión activa y rol administrador.
+    \item Administrador ingresa o modifica datos de la promoción (nombre, tipo de descuento, porcentaje o monto, fecha de inicio y fin, productos o categorías aplicables).
+    \item Sistema valida datos y persiste cambios en la BD.
+    \item Sistema muestra confirmación y actualiza la lista de promociones.
+\end{enumerate}
+
+\subsubsection*{Flujos alternativos}
+\begin{enumerate}[label=FA-\arabic*]
+    \item Nombre duplicado: sistema detecta nombre repetido; muestra error y no permite alta.
+    \item Fechas inválidas: sistema detecta que la fecha de inicio es posterior a la de fin; muestra error y no permite alta o modificación.
+    \item Reactivar promoción: administrador selecciona promoción inactiva; sistema cambia estado a activo y la aplica nuevamente.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Sin sesión o sin rol administrador: sistema detecta falta de permisos; redirige a \texttt{/login} o muestra error de autorización.
+    \item Error en BD: sistema captura excepción, registra log y muestra mensaje genérico invitando a intentarlo de nuevo.
+\end{enumerate}
+
+% ============================
+% TABLA DE TRAZABILIDAD
+% ============================
+
+\section{Tabla de trazabilidad}
+
+\renewcommand{\arraystretch}{1.0}
+\begin{tabularx}{\linewidth}{|p{2.5cm}|X|X|X|X|}
+    \hline
+    \textbf{CU}                              & \textbf{OE relacionado} & \textbf{RF relacionados} & \textbf{RN aplicables}  & \textbf{RNF aplicables} \\ \hline
+    CU01: Registrar cuenta                   & OE1                     & RF01                     & RN1, RN2, RN4           & RNF02                   \\ \hline
+    CU02: Iniciar sesión                     & OE1                     & RF02                     & RN3, RN4, RN5, RN6, RN8 & RNF02, RNF07            \\ \hline
+    CU02b: Cerrar sesión                     & OE1                     & RF02b                    & RN4, RN5, RN6           & RNF02 
+\\ \hline
+    CU03: Ver catálogo                       & OE2                     & RF03a                    & RN9, RN13               & RNF03, RNF08            \\ \hline
+    CU04: Buscar productos                   & OE2                     & RF03b                    & RN9, RN13               & RNF03, RNF08            \\ \hline
+    CU05: Filtrar por categoría              & OE2                     & RF03c                    & RN10--RN13              & RNF03, RNF08            \\ \hline
+    CU06: Ver detalle de producto            & OE2                     & RF03a, RF03b             & RN14--RN17, RN24--RN26b & RNF03, RNF08            \\ \hline
+    CU07: Agregar producto al carrito        & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07                   \\ \hline
+    CU08: Gestionar carrito                  & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07, RNF08            \\ \hline
+    CU09: Realizar pago y confirmar orden    & OE4                     & RF05, RF06               & RN21--RN23, RN24--RN26b & RNF01, RNF07            \\ \hline
+    CU10: Consultar historial de órdenes     & OE4                     & RF07                     & RN7, RN8                & RNF07, RNF08            \\ \hline
+    CU11: Gestionar productos                & OE5                     & RF08, RF12               & RN14--RN17, RN27, RN28  & RNF02, RNF05            \\ \hline
+    CU12: Gestionar categorías               & OE5                     & RF08                     & RN10--RN13, RN27, RN28  & RNF02, RNF05            \\ \hline
+    CU13: Gestionar usuarios                 & OE1, OE5                & RF09                     & RN7, RN8, RN27, RN28    & RNF02, RNF05            \\ \hline
+    CU14: Gestionar promociones y descuentos & OE5                     & RF11                     & RN24--RN26b, RN27, RN28 & RNF02, RNF05            \\ \hline
+\end{tabularx}
+
+\clearpage % fuerza salto de página si la imagen es muy grande
+
+\section{Diagramas UML}
+
+\subsection{Diagrama de Casos de Uso}
+\begin{figure}[htbp]
+    \centering
+    % Escala la imagen al ancho del texto y ajusta altura si es necesario
+    \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{dcu.png}
+    \caption{Diagrama de Casos de Uso del sistema Nozama}
+    \label{fig:dcu}
+\end{figure}
+
+\clearpage % fuerza salto de página si la imagen es muy grande
+
+\subsection{Diagrama de Clases}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{dc.png}
+    \caption{Diagrama de Clases del sistema Nozama}
+    \label{fig:dc}
+\end{figure}
+
+\end{document}
+
