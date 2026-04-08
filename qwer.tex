@@ -421,6 +421,47 @@ Permitir a clientes y administradores autenticarse en el sistema.
 \end{enumerate}
 
 % ============================
+% CU02b
+% ============================
+
+\subsection{CU02b: Cerrar sesión}
+\subsubsection*{Objetivo}
+Permitir a clientes y administradores cerrar su sesión activa de forma segura.
+
+\subsubsection*{Actores}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Cliente / Administrador & Solicita cerrar su sesión activa.              \\ \hline
+    Sistema                 & Invalida la sesión en BD y redirige al inicio. \\ \hline
+\end{longtable}
+
+\subsubsection*{Condiciones iniciales}
+\begin{itemize}[label=--]
+    \item El usuario tiene sesión activa en el sistema.
+    \item BD y servicio web disponibles.
+\end{itemize}
+
+\subsubsection*{Condiciones de salida}
+\begin{longtable}{|l|p{10cm}|}
+    \hline
+    Éxito             & Sesión invalidada; redirección a \texttt{/login}.                         \\ \hline
+    Error del sistema & Sesión no invalidada; mensaje genérico y registro en log.                 \\ \hline
+\end{longtable}
+
+\subsubsection*{Flujo normal}
+\begin{enumerate}[label=FN-\arabic*]
+    \item Usuario hace clic en "Cerrar sesión".
+    \item Sistema invalida el token/sesión en la BD.
+    \item Sistema redirige a \texttt{/login}.
+    \item Intentar navegar hacia atrás retorna HTTP 403 o redirige a \texttt{/login}.
+\end{enumerate}
+
+\subsubsection*{Flujos excepcionales}
+\begin{enumerate}[label=FE-\arabic*]
+    \item Error en BD: sistema captura excepción, registra log; la sesión se invalida localmente de todos modos.
+\end{enumerate}
+
+% ============================
 % CU03
 % ============================
 
@@ -774,7 +815,7 @@ Permitir al cliente confirmar su orden y realizar el pago, validando stock, sesi
 \begin{enumerate}[label=FN-\arabic*]
     \item Cliente accede a su carrito y selecciona “Confirmar orden”.
     \item Sistema valida sesión activa y existencia de productos en el carrito.
-    \item Cliente selecciona método de pago (tarjeta, PayPal, etc.).
+    \item Cliente selecciona método de pago simulado (p.~ej., ``Pago en efectivo'' o ``Transferencia bancaria''); no se integran pasarelas de pago externas en esta versión.
     \item Sistema valida stock de cada producto antes de confirmar.
     \item Sistema aplica promociones vigentes y beneficios VIP si corresponden.
     \item Sistema registra la orden en la BD y procesa el pago.
@@ -1081,6 +1122,8 @@ Permitir al administrador dar de alta, modificar, desactivar o reactivar promoci
     \textbf{CU}                              & \textbf{OE relacionado} & \textbf{RF relacionados} & \textbf{RN aplicables}  & \textbf{RNF aplicables} \\ \hline
     CU01: Registrar cuenta                   & OE1                     & RF01                     & RN1, RN2, RN4           & RNF02                   \\ \hline
     CU02: Iniciar sesión                     & OE1                     & RF02                     & RN3, RN4, RN5, RN6, RN8 & RNF02, RNF07            \\ \hline
+    CU02b: Cerrar sesión                     & OE1                     & RF02b                    & RN4, RN5, RN6           & RNF02 
+\\ \hline
     CU03: Ver catálogo                       & OE2                     & RF03a                    & RN9, RN13               & RNF03, RNF08            \\ \hline
     CU04: Buscar productos                   & OE2                     & RF03b                    & RN9, RN13               & RNF03, RNF08            \\ \hline
     CU05: Filtrar por categoría              & OE2                     & RF03c                    & RN10--RN13              & RNF03, RNF08            \\ \hline
@@ -1088,7 +1131,7 @@ Permitir al administrador dar de alta, modificar, desactivar o reactivar promoci
     CU07: Agregar producto al carrito        & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07                   \\ \hline
     CU08: Gestionar carrito                  & OE3                     & RF04                     & RN18--RN20, RN22        & RNF07, RNF08            \\ \hline
     CU09: Realizar pago y confirmar orden    & OE4                     & RF05, RF06               & RN21--RN23, RN24--RN26b & RNF01, RNF07            \\ \hline
-    CU10: Consultar historial de órdenes     & OE3                     & RF07                     & RN7, RN8                & RNF07, RNF08            \\ \hline
+    CU10: Consultar historial de órdenes     & OE4                     & RF07                     & RN7, RN8                & RNF07, RNF08            \\ \hline
     CU11: Gestionar productos                & OE5                     & RF08, RF12               & RN14--RN17, RN27, RN28  & RNF02, RNF05            \\ \hline
     CU12: Gestionar categorías               & OE5                     & RF08                     & RN10--RN13, RN27, RN28  & RNF02, RNF05            \\ \hline
     CU13: Gestionar usuarios                 & OE1, OE5                & RF09                     & RN7, RN8, RN27, RN28    & RNF02, RNF05            \\ \hline
